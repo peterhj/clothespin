@@ -50,16 +50,31 @@ pub enum Token {
   ColonColon,
   Query,
   Bang,
-  Tilde,
   Dash,
+  DashEq,
   Plus,
   //PlusPlus,
+  PlusEq,
   Star,
   StarStar,
+  StarEq,
   Slash,
+  SlashEq,
   SlashSlash,
   Backslash,
   Percent,
+  PercentEq,
+  Amp,
+  AmpEq,
+  Bar,
+  BarEq,
+  Caret,
+  Tilde,
+  At,
+  LShift,
+  LShiftEq,
+  RShift,
+  RShiftEq,
   Equal,
   EqEq,
   Neq,
@@ -69,14 +84,6 @@ pub enum Token {
   Lt,
   XNot,
   XNeq,
-  Amp,
-  Bar,
-  LShift,
-  LShiftEq,
-  RShift,
-  RShiftEq,
-  At,
-  Caret,
   LDash,
   RDash,
   LEqual,
@@ -129,6 +136,7 @@ pub enum Token {
   Not,
   Or,
   Pass,
+  Raise,
   Return,
   Try,
   Type,
@@ -183,17 +191,20 @@ pub fn fresh_tokenizer_trie() -> Rc<ReTrie<Token>> {
   tr.push(r":\-",   |_| Token::LDash);
   tr.push(r"::",    |_| Token::ColonColon);
   tr.push(r":",     |_| Token::Colon);
-  tr.push(r"/=",    |_| Token::XNeq);
+  tr.push(r"\-=",   |_| Token::DashEq);
   tr.push(r"\-:",   |_| Token::RDash);
   tr.push(r"\->",   |_| Token::RArrow);
-  tr.push(r"\-/",   |_| Token::XNot);
   tr.push(r"\-",    |_| Token::Dash);
+  tr.push(r"\+=",   |_| Token::PlusEq);
   //tr.push(r"\+\+",  |_| Token::PlusPlus);
   tr.push(r"\+",    |_| Token::Plus);
+  tr.push(r"\*=",   |_| Token::StarEq);
   tr.push(r"\*\*",  |_| Token::StarStar);
   tr.push(r"\*",    |_| Token::Star);
+  tr.push(r"/=",    |_| Token::SlashEq);
   tr.push(r"//",    |_| Token::SlashSlash);
   tr.push(r"/",     |_| Token::Slash);
+  tr.push(r"%=",    |_| Token::PercentEq);
   tr.push(r"%",     |_| Token::Percent);
   tr.push(r"=>",    |_| Token::REqArrow);
   tr.push(r"==",    |_| Token::EqEq);
@@ -259,6 +270,7 @@ pub fn fresh_tokenizer_trie() -> Rc<ReTrie<Token>> {
   tr.push(r"not",   |_| Token::Not);
   tr.push(r"or",    |_| Token::Or);
   tr.push(r"pass",  |_| Token::Pass);
+  tr.push(r"raise", |_| Token::Raise);
   tr.push(r"return", |_| Token::Return);
   tr.push(r"try",   |_| Token::Try);
   tr.push(r"type",  |_| Token::Type);
