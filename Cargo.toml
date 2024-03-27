@@ -1,0 +1,9 @@
+[package]
+name = "clothespin"
+version = "0.1.0-devel"
+authors = ["Peter Jin"]
+edition = "2021"
+license = "Apache-2.0"
+
+[dependencies]
+regex_syntax = { path = "../regex/regex-syntax" }
