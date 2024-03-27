@@ -112,8 +112,8 @@ thread_local! {
 impl<T> ReTrie<T> {
   pub fn push<'s, F: 'static + Fn(&str) -> T>(&mut self, rstr: &'s str, map_fun: F) {
     // FIXME: regex-syntax: parser not properly reset.
-    //let rexp = match TL_RE_PARSER.with(|parser| parser.parse(rstr)) {}
-    let rexp = match ReParser::new().parse(rstr) {
+    let rexp = match TL_RE_PARSER.with(|parser| parser.parse(rstr)) {
+    //let rexp = match ReParser::new().parse(rstr) {}
       Err(_) => panic!("bug: ReTrie::push: regexp parse failure: {:?}", rstr),
       Ok(rexp) => rexp
     };

@@ -5,5 +5,28 @@ authors = ["Peter Jin"]
 edition = "2021"
 license = "Apache-2.0"
 
+[profile.dev]
+#opt-level = 0
+opt-level = 1
+debug = true
+overflow-checks = true
+panic = "abort"
+codegen-units = 256
+incremental = true
+lto = false
+
+[profile.release]
+opt-level = 3
+debug = true
+overflow-checks = true
+panic = "abort"
+codegen-units = 1
+incremental = false
+lto = false
+
 [dependencies]
 regex_syntax = { path = "../regex/regex-syntax" }
+
+[dev-dependencies]
+rustpython-parser = { path = "../rustpython-parser/parser" }
+time = { path = "../time-0.1" }

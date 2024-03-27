@@ -7,12 +7,12 @@ all: release
 dev: debug
 
 debug:
-	$(CARGO) build --lib
+	$(CARGO) build --lib --bins --examples
 
 rel: release
 
 release:
-	$(CARGO) build --release --lib
+	$(CARGO) build --release --lib --bins --examples
 
 test:
 	$(CARGO) test --release -- --nocapture
