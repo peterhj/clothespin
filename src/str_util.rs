@@ -1,6 +1,6 @@
 pub use crate::re::{len_utf8};
 
-use smol_str::{SmolStr};
+pub use smol_str::{SmolStr};
 
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
@@ -72,6 +72,109 @@ impl Display for SafeStr {
 }
 
 // NB: json-like string (un-)escape via rustc_serialize.
+
+fn decode_hex_escape_alt<I: Iterator<Item=char>>(src: &mut I) -> Result<u16, ()> {
+  let mut i = 0;
+  let mut n = 0;
+  while i < 4 {
+    let c = match src.next() {
+      Some(c) => c,
+      None => return Err(())
+    };
+    n = match c {
+      c @ '0' ..= '9' => n * 16 + ((c as u16) - ('0' as u16)),
+      c @ 'a' ..= 'f' => n * 16 + (10 + (c as u16) - ('a' as u16)),
+      c @ 'A' ..= 'F' => n * 16 + (10 + (c as u16) - ('A' as u16)),
+      _ => return Err(())
+    };
+    i += 1;
+  }
+  Ok(n)
+}
+
+pub fn unescape_chars<I: Iterator<Item=char>>(src: &mut I, delim: char) -> Result<String, ()> {
+  let c = match src.next() {
+    None => {
+      return Err(());
+    }
+    Some(c) => c
+  };
+  if c != delim {
+    return Err(());
+  }
+
+  let mut res = String::new();
+  let mut escape = false;
+
+  loop {
+    let c = match src.next() {
+      None => {
+        return Err(());
+      }
+      Some(c) => c
+    };
+
+    if escape {
+      match c {
+        '"' => res.push('"'),
+        '\\' => res.push('\\'),
+        // NB: must escape single-char latex delimiter.
+        '$' => res.push('$'),
+        '/' => res.push('/'),
+        'b' => res.push('\x08'),
+        'f' => res.push('\x0c'),
+        'n' => res.push('\n'),
+        'r' => res.push('\r'),
+        't' => res.push('\t'),
+        'u' => match decode_hex_escape_alt(src)? {
+          0xDC00 ..= 0xDFFF => {
+            //return self.error(LoneLeadingSurrogateInHexEscape)
+            return Err(());
+          }
+
+          // Non-BMP characters are encoded as a sequence of
+          // two hex escapes, representing UTF-16 surrogates.
+          n1 @ 0xD800 ..= 0xDBFF => {
+            match (src.next(), src.next()) {
+              (Some('\\'), Some('u')) => (),
+              //_ => return self.error(UnexpectedEndOfHexEscape),
+              _ => return Err(())
+            }
+
+            let n2 = decode_hex_escape_alt(src)?;
+            if n2 < 0xDC00 || n2 > 0xDFFF {
+              //return self.error(LoneLeadingSurrogateInHexEscape)
+              return Err(());
+            }
+            let c = (((n1 - 0xD800) as u32) << 10 |
+                 (n2 - 0xDC00) as u32) + 0x1_0000;
+            res.push(char::from_u32(c).unwrap());
+          }
+
+          n => match char::from_u32(n as u32) {
+            Some(c) => res.push(c),
+            //None => return self.error(InvalidUnicodeCodePoint),
+            None => return Err(())
+          },
+        },
+        //_ => return self.error(InvalidEscape),
+        _ => return Err(())
+      }
+      escape = false;
+    } else if c == '\\' {
+      escape = true;
+    } else {
+      if c == delim {
+        return Ok(res);
+      } else if c <= '\u{1F}' {
+        //return self.error(ControlCharacterInString),
+        return Err(());
+      } else {
+        res.push(c);
+      }
+    }
+  }
+}
 
 fn decode_hex_escape<I: Iterator<Item=char>>(src: &mut I, off: &mut usize) -> Result<u16, ()> {
   let mut o = 0;
