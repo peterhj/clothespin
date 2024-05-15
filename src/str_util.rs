@@ -1,8 +1,10 @@
 pub use crate::re::{len_utf8};
 
+use smol_str::{SmolStr};
+
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
-pub fn safe_ascii(s: &[u8]) -> String {
+pub fn safe_ascii(s: &[u8]) -> SmolStr {
   let mut buf = String::new();
   for &x in s.iter() {
     if x <= 0x20 {
@@ -18,11 +20,17 @@ pub fn safe_ascii(s: &[u8]) -> String {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct SafeStr {
-  raw:  String,
+  raw:  SmolStr,
 }
 
 impl From<String> for SafeStr {
   fn from(s: String) -> SafeStr {
+    SafeStr{raw: s.into()}
+  }
+}
+
+impl From<SmolStr> for SafeStr {
+  fn from(s: SmolStr) -> SafeStr {
     SafeStr{raw: s.into()}
   }
 }
@@ -46,7 +54,7 @@ impl SafeStr {
     self.raw.as_str()
   }
 
-  pub fn set_raw_str<S: Into<String>>(&mut self, s: S) {
+  pub fn set_raw_str<S: Into<SmolStr>>(&mut self, s: S) {
     self.raw = s.into();
   }
 }
@@ -87,7 +95,7 @@ fn decode_hex_escape<I: Iterator<Item=char>>(src: &mut I, off: &mut usize) -> Re
   Ok(n)
 }
 
-pub fn unescape_str(src: &str, delim: char) -> Result<(String, usize), ()> {
+pub fn unescape_str(src: &str, delim: char) -> Result<(SmolStr, usize), ()> {
   let mut src = src.chars();
   let mut off = 0;
 
@@ -164,7 +172,7 @@ pub fn unescape_str(src: &str, delim: char) -> Result<(String, usize), ()> {
       escape = true;
     } else {
       if c == delim {
-        return Ok((res, off));
+        return Ok((res.into(), off));
       } else if c <= '\u{1F}' {
         //return self.error(ControlCharacterInString),
         return Err(());

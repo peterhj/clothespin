@@ -233,6 +233,7 @@ impl ReInnerTrie {
               self.klass.insert((lb, ub), eidx);
               ranges.push((lb, ub));
             }
+            ranges.sort();
             self.ranges.insert(eidx, ranges);
             if rexps.is_empty() {
               self.non_lit.push(ReInnerTrieRef::Terminal(ridx));
@@ -278,6 +279,7 @@ impl ReInnerTrie {
               self.bound1.insert((c, c), eidx);
             }
             ranges.push((c, c));
+            ranges.sort();
             self.ranges.insert(eidx, ranges);
             if rexps.is_empty() {
               self.non_lit.push(ReInnerTrieRef::Terminal(ridx));
@@ -309,6 +311,7 @@ impl ReInnerTrie {
                 }
                 ranges.push((lb, ub));
               }
+              ranges.sort();
               self.ranges.insert(eidx, ranges);
               if rexps.is_empty() {
                 self.non_lit.push(ReInnerTrieRef::Terminal(ridx));
@@ -614,13 +617,9 @@ impl ReInnerTrie {
         let mut rep_len = c_len;
         let mut suffix = suffix;
         loop {
-          let mut chars = suffix.char_indices();
-          let c = match chars.next() {
+          let c = match suffix.chars().next() {
             None => break,
-            Some((pos, c)) => {
-              assert_eq!(pos, 0);
-              c
-            }
+            Some(c) => c
           };
           let c_len = len_utf8(c as _);
           let mut more = false;
@@ -634,13 +633,7 @@ impl ReInnerTrie {
             break;
           }
           rep_len += c_len;
-          suffix = match chars.next() {
-            None => &suffix[suffix.len() .. ],
-            Some((p, _)) => match suffix.get(p .. ) {
-              None => unreachable!(),
-              Some(s) => s
-            }
-          };
+          suffix = suffix.get(c_len .. ).unwrap();
         }
         match &self.non_lit[eidx] {
           &ReInnerTrieRef::Terminal(ridx) => match (ctx, mat) {

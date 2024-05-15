@@ -26,6 +26,7 @@ lto = false
 
 [dependencies]
 regex_syntax = { path = "../regex/regex-syntax" }
+smol_str = { path = "../smol_str", default-features = false }
 
 [dev-dependencies]
 rustpython-parser = { path = "../rustpython-parser/parser" }
